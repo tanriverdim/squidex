@@ -13,7 +13,7 @@ using Squidex.Infrastructure.Collections;
 
 namespace Squidex.Domain.Apps.Core.Apps
 {
-    public sealed class AppClients : ArrayDictionary<string, AppClient>
+    public sealed class AppClients : ImmutableDictionary<string, AppClient>
     {
         public static readonly AppClients Empty = new AppClients();
 
@@ -21,8 +21,8 @@ namespace Squidex.Domain.Apps.Core.Apps
         {
         }
 
-        public AppClients(KeyValuePair<string, AppClient>[] items)
-            : base(items)
+        public AppClients(Dictionary<string, AppClient> inner)
+            : base(inner)
         {
         }
 
@@ -71,7 +71,7 @@ namespace Squidex.Domain.Apps.Core.Apps
                 return this;
             }
 
-            return With<AppClients>(id, client.Rename(newName), DeepComparer<AppClient>.Instance);
+            return With<AppClients>(id, client.Rename(newName));
         }
 
         [Pure]
@@ -84,7 +84,7 @@ namespace Squidex.Domain.Apps.Core.Apps
                 return this;
             }
 
-            return With<AppClients>(id, client.Update(role), DeepComparer<AppClient>.Instance);
+            return With<AppClients>(id, client.Update(role));
         }
     }
 }

@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using Squidex.Domain.Apps.Core.Assets;
 using Squidex.Domain.Apps.Events.Assets;
 using Squidex.Infrastructure;
+using Squidex.Infrastructure.Commands;
 using Squidex.Infrastructure.EventSourcing;
 using Squidex.Infrastructure.Reflection;
 
@@ -46,6 +47,9 @@ namespace Squidex.Domain.Apps.Entities.Assets.State
 
         [DataMember]
         public long TotalSize { get; set; }
+
+        [DataMember]
+        public bool IsProtected { get; set; }
 
         [DataMember]
         public HashSet<string> Tags { get; set; }
@@ -85,6 +89,8 @@ namespace Squidex.Domain.Apps.Entities.Assets.State
 
                         TotalSize += e.FileSize;
 
+                        EnsureProperties();
+
                         return true;
                     }
 
@@ -94,6 +100,8 @@ namespace Squidex.Domain.Apps.Entities.Assets.State
 
                         TotalSize += e.FileSize;
 
+                        EnsureProperties();
+
                         return true;
                     }
 
@@ -101,33 +109,42 @@ namespace Squidex.Domain.Apps.Entities.Assets.State
                     {
                         var hasChanged = false;
 
-                        if (!string.IsNullOrWhiteSpace(e.FileName) && !string.Equals(e.FileName, FileName))
+                        if (Is.OptionalChange(FileName, e.FileName))
                         {
                             FileName = e.FileName;
 
                             hasChanged = true;
                         }
 
-                        if (!string.IsNullOrWhiteSpace(e.Slug) && !string.Equals(e.Slug, Slug))
+                        if (Is.OptionalChange(Slug, e.Slug))
                         {
                             Slug = e.Slug;
 
                             hasChanged = true;
                         }
 
-                        if (e.Tags != null && !e.Tags.SetEquals(Tags))
+                        if (Is.OptionalChange(IsProtected, e.IsProtected))
+                        {
+                            IsProtected = e.IsProtected.Value;
+
+                            hasChanged = true;
+                        }
+
+                        if (Is.OptionalChange(Tags, e.Tags))
                         {
                             Tags = e.Tags;
 
                             hasChanged = true;
                         }
 
-                        if (e.Metadata != null && !e.Metadata.EqualsDictionary(Metadata))
+                        if (Is.OptionalChange(Metadata, e.Metadata))
                         {
                             Metadata = e.Metadata;
 
                             hasChanged = true;
                         }
+
+                        EnsureProperties();
 
                         return hasChanged;
                     }
@@ -148,6 +165,19 @@ namespace Squidex.Domain.Apps.Entities.Assets.State
             }
 
             return false;
+        }
+
+        private void EnsureProperties()
+        {
+            if (Tags == null)
+            {
+                Tags = new HashSet<string>();
+            }
+
+            if (Metadata == null)
+            {
+                Metadata = new AssetMetadata();
+            }
         }
     }
 }

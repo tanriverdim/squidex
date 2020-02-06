@@ -5,7 +5,6 @@
 //  All rights reserved. Licensed under the MIT license.
 // ==========================================================================
 
-using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
@@ -23,7 +22,7 @@ namespace Squidex.Pipeline.Plugins
 {
     public static class PluginExtensions
     {
-        private static readonly AssemblyName[] SharedAssemblies = new Type[]
+        private static readonly AssemblyName[] SharedAssemblies = new[]
         {
             typeof(IPlugin),
             typeof(SquidexCoreModel),

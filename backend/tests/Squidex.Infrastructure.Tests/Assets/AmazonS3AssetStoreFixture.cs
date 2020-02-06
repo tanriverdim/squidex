@@ -13,9 +13,10 @@ namespace Squidex.Infrastructure.Assets
 
         public AmazonS3AssetStoreFixture()
         {
+            // From: https://console.aws.amazon.com/iam/home?region=eu-central-1#/users/s3?section=security_credentials
             AssetStore = new AmazonS3AssetStore(new AmazonS3Options
             {
-                AccessKey = "secret",
+                AccessKey = "key",
                 Bucket = "squidex-test",
                 BucketFolder = "squidex-assets",
                 ForcePathStyle = false,

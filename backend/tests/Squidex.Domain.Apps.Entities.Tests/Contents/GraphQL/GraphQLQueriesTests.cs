@@ -146,6 +146,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.GraphQL
                     fileSize
                     fileVersion
                     isImage
+                    isProtected
                     pixelWidth
                     pixelHeight
                     type
@@ -188,6 +189,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.GraphQL
                             fileSize = 1024,
                             fileVersion = 123,
                             isImage = true,
+                            isProtected = false,
                             pixelWidth = 800,
                             pixelHeight = 600,
                             type = "IMAGE",
@@ -197,7 +199,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.GraphQL
                             metadata = new
                             {
                                 pixelWidth = 800,
-                                pixelHeight = 600,
+                                pixelHeight = 600
                             },
                             tags = new[]
                             {
@@ -236,6 +238,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.GraphQL
                       fileSize
                       fileVersion
                       isImage
+                      isProtected
                       pixelWidth
                       pixelHeight
                       type
@@ -282,6 +285,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.GraphQL
                                 fileSize = 1024,
                                 fileVersion = 123,
                                 isImage = true,
+                                isProtected = false,
                                 pixelWidth = 800,
                                 pixelHeight = 600,
                                 type = "IMAGE",
@@ -291,7 +295,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.GraphQL
                                 metadata = new
                                 {
                                     pixelWidth = 800,
-                                    pixelHeight = 600,
+                                    pixelHeight = 600
                                 },
                                 tags = new[]
                                 {

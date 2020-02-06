@@ -12,7 +12,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using FakeItEasy;
 using Squidex.Domain.Apps.Core.Contents;
-using Squidex.Domain.Apps.Core.ConvertContent;
 using Squidex.Domain.Apps.Core.Schemas;
 using Squidex.Domain.Apps.Core.Scripting;
 using Squidex.Domain.Apps.Entities.Apps;
@@ -35,7 +34,6 @@ namespace Squidex.Domain.Apps.Entities.Contents.Queries
     {
         private readonly IAppEntity app;
         private readonly IAppProvider appProvider = A.Fake<IAppProvider>();
-        private readonly IAssetUrlGenerator urlGenerator = A.Fake<IAssetUrlGenerator>();
         private readonly IContentEnricher contentEnricher = A.Fake<IContentEnricher>();
         private readonly IContentRepository contentRepository = A.Fake<IContentRepository>();
         private readonly IContentLoader contentVersionLoader = A.Fake<IContentLoader>();
@@ -68,7 +66,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.Queries
 
             var schemaDef =
                 new Schema(schemaId.Name)
-                    .ConfigureScripts(new SchemaScripts { Query = "<query-script>" });
+                    .SetScripts(new SchemaScripts { Query = "<query-script>" });
 
             schema = Mocks.Schema(appId, schemaId, schemaDef);
 
@@ -79,7 +77,6 @@ namespace Squidex.Domain.Apps.Entities.Contents.Queries
 
             sut = new ContentQueryService(
                 appProvider,
-                urlGenerator,
                 contentEnricher,
                 contentRepository,
                 contentVersionLoader,
@@ -475,7 +472,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.Queries
             A.CallTo(() => contentEnricher.EnrichAsync(A<IEnumerable<IContentEntity>>.Ignored, requestContext))
                 .ReturnsLazily(x =>
                 {
-                    var input = (IEnumerable<IContentEntity>)x.Arguments[0];
+                    var input = x.GetArgument<IEnumerable<IContentEntity>>(0)!;
 
                     return Task.FromResult<IReadOnlyList<IEnrichedContentEntity>>(input.Select(c => SimpleMapper.Map(c, new ContentEntity())).ToList());
                 });

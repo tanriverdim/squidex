@@ -18,10 +18,10 @@ import {
     ValidatorsEx
 } from '@app/framework';
 
-import { ContentDto, ContentReferencesValue } from '../services/contents.service';
-import { LanguageDto } from '../services/languages.service';
 import { AppLanguageDto } from './../services/app-languages.service';
-import { FieldDto, RootFieldDto, SchemaDetailsDto } from './../services/schemas.service';
+import { ContentDto, ContentReferencesValue } from './../services/contents.service';
+import { LanguageDto } from './../services/languages.service';
+import { FieldDto, RootFieldDto, SchemaDetailsDto, TableField } from './../services/schemas.service';
 import {
     ArrayFieldPropertiesDto,
     AssetsFieldPropertiesDto,
@@ -206,10 +206,6 @@ export class FieldFormatter implements FieldPropertiesVisitor<FieldValue> {
         }
     }
 
-    public visitString(_: StringFieldPropertiesDto): any {
-        return this.value;
-    }
-
     public visitTags(_: TagsFieldPropertiesDto): string {
         if (this.value.length) {
             return this.value.join(', ');
@@ -218,9 +214,35 @@ export class FieldFormatter implements FieldPropertiesVisitor<FieldValue> {
         }
     }
 
+    public visitString(properties: StringFieldPropertiesDto): any {
+        if (properties.editor === 'StockPhoto' && this.allowHtml && this.value) {
+            const src = thumbnail(this.value, undefined, 50);
+
+            if (src) {
+                return new HtmlValue(`<img src="${src}" />`);
+            }
+        }
+
+        return this.value;
+    }
+
     public visitUI(_: UIFieldPropertiesDto): any {
         return '';
     }
+}
+
+export function thumbnail(url: string, width?: number, height?: number) {
+    if (url && url.startsWith('https://images.unsplash.com')) {
+        if (width) {
+            return `${url}&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=${width}&fit=max`;
+        }
+
+        if (height) {
+            return `${url}&q=80&fm=jpg&crop=entropy&cs=tinysrgb&h=${height}&fit=max`;
+        }
+    }
+
+    return undefined;
 }
 
 export class FieldsValidators implements FieldPropertiesVisitor<ReadonlyArray<ValidatorFn>> {
@@ -478,13 +500,13 @@ export class EditContentForm extends Form<FormGroup, any> {
     public hasChanged() {
         const currentValue = this.form.getRawValue();
 
-        return !Types.jsJsonEquals(this.initialData, currentValue);
+        return !Types.equals(this.initialData, currentValue);
     }
 
     public hasChanges(changes: any) {
         const currentValue = this.form.getRawValue();
 
-        return !Types.jsJsonEquals(changes, currentValue);
+        return !Types.equals(changes, currentValue);
     }
 
     public arrayItemRemove(field: RootFieldDto, language: AppLanguageDto, index: number) {
@@ -637,13 +659,17 @@ export class EditContentForm extends Form<FormGroup, any> {
 }
 
 export class PatchContentForm extends Form<FormGroup, any> {
+    private readonly editableFields: ReadonlyArray<RootFieldDto>;
+
     constructor(
-        private readonly schema: SchemaDetailsDto,
+        private readonly listFields: ReadonlyArray<TableField>,
         private readonly language: AppLanguageDto
     ) {
         super(new FormGroup({}));
 
-        for (const field of this.schema.listFieldsEditable) {
+        this.editableFields = <any>this.listFields.filter(x => Types.is(x, RootFieldDto) && x.isInlineEditable);
+
+        for (const field of this.editableFields) {
             const validators = FieldsValidators.create(field, this.language.isOptional);
 
             this.form.setControl(field.name, new FormControl(undefined, validators));
@@ -656,7 +682,7 @@ export class PatchContentForm extends Form<FormGroup, any> {
         if (result) {
             const request = {};
 
-            for (const field of this.schema.listFieldsEditable) {
+            for (const field of this.editableFields) {
                 const value = result[field.name];
 
                 if (field.isLocalizable) {

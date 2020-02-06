@@ -32,12 +32,10 @@ using Squidex.Domain.Users.MongoDb;
 using Squidex.Domain.Users.MongoDb.Infrastructure;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.Diagnostics;
-using Squidex.Infrastructure.EventSourcing;
 using Squidex.Infrastructure.Json;
 using Squidex.Infrastructure.Log;
 using Squidex.Infrastructure.Log.Store;
 using Squidex.Infrastructure.Migrations;
-using Squidex.Infrastructure.Reflection;
 using Squidex.Infrastructure.States;
 using Squidex.Infrastructure.UsageTracking;
 
@@ -81,6 +79,9 @@ namespace Squidex.Config.Domain
                     services.AddTransientAs<RenameAssetSlugField>()
                         .As<IMigration>();
 
+                    services.AddTransientAs<RenameAssetMetadata>()
+                        .As<IMigration>();
+
                     services.AddHealthChecks()
                         .AddCheck<MongoDBHealthCheck>("MongoDB", tags: new[] { "node" });
 
@@ -100,26 +101,20 @@ namespace Squidex.Config.Domain
                         .As<IRoleStore<IdentityRole>>();
 
                     services.AddSingletonAs<MongoUserStore>()
-                        .As<IUserStore<IdentityUser>>()
-                        .As<IUserFactory>();
+                        .As<IUserStore<IdentityUser>>().As<IUserFactory>();
 
                     services.AddSingletonAs<MongoAssetRepository>()
-                        .As<IAssetRepository>()
-                        .As<ISnapshotStore<AssetState, Guid>>();
+                        .As<IAssetRepository>().As<ISnapshotStore<AssetState, Guid>>();
 
                     services.AddSingletonAs<MongoAssetFolderRepository>()
-                        .As<IAssetFolderRepository>()
-                        .As<ISnapshotStore<AssetFolderState, Guid>>();
+                        .As<IAssetFolderRepository>().As<ISnapshotStore<AssetFolderState, Guid>>();
 
                     services.AddSingletonAs(c => new MongoContentRepository(
                             c.GetRequiredService<IMongoClient>().GetDatabase(mongoContentDatabaseName),
                             c.GetRequiredService<IAppProvider>(),
-                            c.GetRequiredService<IJsonSerializer>(),
                             c.GetRequiredService<ITextIndexer>(),
-                            c.GetRequiredService<TypeNameRegistry>()))
-                        .As<IContentRepository>()
-                        .As<ISnapshotStore<ContentState, Guid>>()
-                        .As<IEventConsumer>();
+                            c.GetRequiredService<IJsonSerializer>()))
+                        .As<IContentRepository>().As<ISnapshotStore<ContentState, Guid>>();
 
                     var registration = services.FirstOrDefault(x => x.ServiceType == typeof(IPersistedGrantStore));
 

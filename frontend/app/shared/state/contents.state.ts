@@ -16,6 +16,7 @@ import {
     Pager,
     shareSubscribed,
     State,
+    Types,
     Version,
     Versioned
 } from '@app/framework';
@@ -24,7 +25,7 @@ import { ContentDto, ContentsService, StatusInfo } from './../services/contents.
 import { SchemaDto } from './../services/schemas.service';
 import { AppsState } from './apps.state';
 import { SavedQuery } from './queries';
-import { encodeQuery, Query } from './query';
+import { Query } from './query';
 import { SchemasState } from './schemas.state';
 
 interface Snapshot {
@@ -36,9 +37,6 @@ interface Snapshot {
 
     // The query to filter and sort contents.
     contentsQuery?: Query;
-
-    // The raw content query.
-    contentsQueryJson: string;
 
     // Indicates if the contents are loaded.
     isLoaded?: boolean;
@@ -59,15 +57,11 @@ interface Snapshot {
     canCreateAndPublish?: boolean;
 }
 
-function sameContent(lhs: ContentDto, rhs?: ContentDto): boolean {
-    return lhs === rhs || (!!lhs && !!rhs && lhs.id === rhs.id && lhs.version.eq(rhs.version));
-}
-
 export abstract class ContentsStateBase extends State<Snapshot> {
     private previousId: string;
 
     public selectedContent =
-        this.project(x => x.selectedContent, sameContent);
+        this.project(x => x.selectedContent, Types.equals);
 
     public contents =
         this.project(x => x.contents);
@@ -97,7 +91,7 @@ export abstract class ContentsStateBase extends State<Snapshot> {
         this.project(x => x.statuses);
 
     public statusQueries =
-        this.projectFrom(this.statuses, x => buildQueries(x));
+        this.projectFrom(this.statuses, x => buildStatusQueries(x));
 
     constructor(
         private readonly appsState: AppsState,
@@ -107,8 +101,7 @@ export abstract class ContentsStateBase extends State<Snapshot> {
     ) {
         super({
             contents: [],
-            contentsPager: Pager.fromLocalStore('contents', localStore),
-            contentsQueryJson: ''
+            contentsPager: Pager.fromLocalStore('contents', localStore)
         });
 
         this.contentsPager.subscribe(pager => {
@@ -313,7 +306,7 @@ export abstract class ContentsStateBase extends State<Snapshot> {
     }
 
     public search(contentsQuery?: Query): Observable<any> {
-        this.next(s => ({ ...s, contentsPager: s.contentsPager.reset(), contentsQuery, contentsQueryJson: encodeQuery(contentsQuery) }));
+        this.next(s => ({ ...s, contentsPager: s.contentsPager.reset(), contentsQuery }));
 
         return this.loadInternal(false);
     }
@@ -323,11 +316,6 @@ export abstract class ContentsStateBase extends State<Snapshot> {
 
         return this.loadInternal(false);
     }
-
-    public isQueryUsed(saved: SavedQuery) {
-        return this.snapshot.contentsQueryJson === saved.queryJson;
-    }
-
     private get appName() {
         return this.appsState.appName;
     }
@@ -383,13 +371,11 @@ export class ManualContentsState extends ContentsStateBase {
     }
 }
 
-export type ContentQuery =  { color: string; } & SavedQuery;
-
-function buildQueries(statuses: ReadonlyArray<StatusInfo> | undefined): ReadonlyArray<ContentQuery> {
-    return statuses ? statuses.map(s => buildQuery(s)) : [];
+function buildStatusQueries(statuses: ReadonlyArray<StatusInfo> | undefined): ReadonlyArray<SavedQuery> {
+    return statuses ? statuses.map(s => buildStatusQuery(s)) : [];
 }
 
-function buildQuery(s: StatusInfo) {
+function buildStatusQuery(s: StatusInfo) {
     const query = {
         filter: {
             and: [
@@ -398,5 +384,5 @@ function buildQuery(s: StatusInfo) {
         }
     };
 
-    return ({ name: s.status, color: s.color, query, queryJson: encodeQuery(query) });
+    return ({ name: s.status, color: s.color, query });
 }

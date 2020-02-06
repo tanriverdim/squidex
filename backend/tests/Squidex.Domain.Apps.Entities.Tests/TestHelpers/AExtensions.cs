@@ -24,12 +24,12 @@ namespace Squidex.Domain.Apps.Entities.TestHelpers
             return values == null ? that.IsNull() : that.IsSameSequenceAs(values);
         }
 
-        public static IEnumerable<T> Has<T>(this INegatableArgumentConstraintManager<IEnumerable<T>> that, params T[]? values)
+        public static HashSet<T> Is<T>(this INegatableArgumentConstraintManager<HashSet<T>> that, IEnumerable<T>? values)
         {
-            return values == null ? that.IsNull() : that.Matches(x => x.Intersect(values).Count() == values.Length);
+            return values == null ? that.IsNull() : that.Matches(x => x.Intersect(values).Count() == values.Count());
         }
 
-        public static HashSet<T> Has<T>(this INegatableArgumentConstraintManager<HashSet<T>> that, params T[]? values)
+        public static HashSet<T> Is<T>(this INegatableArgumentConstraintManager<HashSet<T>> that, params T[]? values)
         {
             return values == null ? that.IsNull() : that.Matches(x => x.Intersect(values).Count() == values.Length);
         }

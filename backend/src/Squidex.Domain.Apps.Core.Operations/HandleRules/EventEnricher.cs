@@ -8,7 +8,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using Squidex.Domain.Apps.Core.HandleRules.EnrichedEvents;
+using Squidex.Domain.Apps.Core.Rules.EnrichedEvents;
 using Squidex.Domain.Apps.Events;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.EventSourcing;
@@ -50,7 +50,7 @@ namespace Squidex.Domain.Apps.Core.HandleRules
 
         private Task<IUser?> FindUserAsync(RefToken actor)
         {
-            var key = $"EventEnrichers_Users_${actor.Identifier}";
+            var key = $"EventEnrichers_Users_{actor.Identifier}";
 
             return userCache.GetOrCreateAsync(key, async x =>
             {

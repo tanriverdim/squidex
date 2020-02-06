@@ -6,7 +6,6 @@
 // ==========================================================================
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
-using NSwag.Annotations;
 using Squidex.Areas.Api.Controllers.Apps.Models;
 using Squidex.Domain.Apps.Entities;
 using Squidex.Domain.Apps.Entities.Apps;
@@ -36,6 +34,7 @@ namespace Squidex.Areas.Api.Controllers.Apps
     [ApiExplorerSettings(GroupName = nameof(Apps))]
     public sealed class AppsController : ApiController
     {
+        private static readonly ResizeOptions ResizeOptions = new ResizeOptions { Width = 50, Height = 50, Mode = ResizeMode.Crop };
         private readonly IAppImageStore appImageStore;
         private readonly IAssetStore assetStore;
         private readonly IAssetThumbnailGenerator assetThumbnailGenerator;
@@ -176,10 +175,10 @@ namespace Squidex.Areas.Api.Controllers.Apps
         /// </returns>
         [HttpPost]
         [Route("apps/{app}/image")]
-        [ProducesResponseType(typeof(AppDto), 201)]
+        [ProducesResponseType(typeof(AppDto), 200)]
         [ApiPermission(Permissions.AppUpdateImage)]
         [ApiCosts(0)]
-        public async Task<IActionResult> UploadImage(string app, [OpenApiIgnore] List<IFormFile> file)
+        public async Task<IActionResult> UploadImage(string app, IFormFile file)
         {
             var response = await InvokeCommandAsync(CreateCommand(file));
 
@@ -234,7 +233,7 @@ namespace Squidex.Areas.Api.Controllers.Apps
 
                                 using (Profiler.Trace("ResizeImage"))
                                 {
-                                    await assetThumbnailGenerator.CreateThumbnailAsync(sourceStream, destinationStream, 150, 150, "Crop");
+                                    await assetThumbnailGenerator.CreateThumbnailAsync(sourceStream, destinationStream, ResizeOptions);
                                     destinationStream.Position = 0;
                                 }
 
@@ -264,7 +263,7 @@ namespace Squidex.Areas.Api.Controllers.Apps
         /// </returns>
         [HttpDelete]
         [Route("apps/{app}/image")]
-        [ProducesResponseType(typeof(AppDto), 201)]
+        [ProducesResponseType(typeof(AppDto), 200)]
         [ApiPermission(Permissions.AppUpdate)]
         [ApiCosts(0)]
         public async Task<IActionResult> DeleteImage(string app)
@@ -306,16 +305,16 @@ namespace Squidex.Areas.Api.Controllers.Apps
             return response;
         }
 
-        private static UploadAppImage CreateCommand(IReadOnlyList<IFormFile> file)
+        private UploadAppImage CreateCommand(IFormFile? file)
         {
-            if (file.Count != 1)
+            if (file == null || Request.Form.Files.Count != 1)
             {
-                var error = new ValidationError($"Can only upload one file, found {file.Count} files.");
+                var error = new ValidationError($"Can only upload one file, found {Request.Form.Files.Count} files.");
 
-                throw new ValidationException("Cannot create asset.", error);
+                throw new ValidationException("Cannot upload image.", error);
             }
 
-            return new UploadAppImage { File = file[0].ToAssetFile() };
+            return new UploadAppImage { File = file.ToAssetFile() };
         }
 
         private static FileStream GetTempStream()

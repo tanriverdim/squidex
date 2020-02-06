@@ -17,7 +17,7 @@ using Squidex.Domain.Apps.Core.Apps;
 using Squidex.Domain.Apps.Core.Schemas;
 using Squidex.Domain.Apps.Entities.Apps;
 using Squidex.Domain.Apps.Entities.MongoDb.Contents;
-using Squidex.Domain.Apps.Entities.MongoDb.Contents.Visitors;
+using Squidex.Domain.Apps.Entities.MongoDb.Contents.Operations;
 using Squidex.Domain.Apps.Entities.Schemas;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.MongoDb;
@@ -34,7 +34,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.MongoDb
         private static readonly IBsonSerializerRegistry Registry = BsonSerializer.SerializerRegistry;
         private static readonly IBsonSerializer<MongoContentEntity> Serializer = BsonSerializer.SerializerRegistry.GetSerializer<MongoContentEntity>();
         private readonly Schema schemaDef;
-        private readonly LanguagesConfig languagesConfig = LanguagesConfig.Build(Language.EN, Language.DE);
+        private readonly LanguagesConfig languagesConfig = LanguagesConfig.English.Set(Language.DE);
 
         static MongoDbQueryTests()
         {
@@ -80,6 +80,50 @@ namespace Squidex.Domain.Apps.Entities.Contents.MongoDb
         public void Should_throw_exception_for_invalid_field()
         {
             Assert.Throws<NotSupportedException>(() => F(ClrFilter.Eq("data/invalid/iv", "Me")));
+        }
+
+        [Fact]
+        public void Should_make_query_with_id()
+        {
+            var id = Guid.NewGuid();
+
+            var i = F(ClrFilter.Eq("id", id));
+            var o = C($"{{ '_id' : '{id}' }}");
+
+            Assert.Equal(o, i);
+        }
+
+        [Fact]
+        public void Should_make_query_with_id_string()
+        {
+            var id = Guid.NewGuid().ToString();
+
+            var i = F(ClrFilter.Eq("id", id));
+            var o = C($"{{ '_id' : '{id}' }}");
+
+            Assert.Equal(o, i);
+        }
+
+        [Fact]
+        public void Should_make_query_with_id_list()
+        {
+            var id = Guid.NewGuid();
+
+            var i = F(ClrFilter.In("id", new List<Guid> { id }));
+            var o = C($"{{ '_id' : {{ '$in' : ['{id}'] }} }}");
+
+            Assert.Equal(o, i);
+        }
+
+        [Fact]
+        public void Should_make_query_with_id_string_list()
+        {
+            var id = Guid.NewGuid().ToString();
+
+            var i = F(ClrFilter.In("id", new List<string> { id }));
+            var o = C($"{{ '_id' : {{ '$in' : ['{id}'] }} }}");
+
+            Assert.Equal(o, i);
         }
 
         [Fact]
@@ -232,7 +276,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.MongoDb
             var query = new ClrQuery { Take = 3 };
             var cursor = A.Fake<IFindFluent<MongoContentEntity, MongoContentEntity>>();
 
-            cursor.ContentTake(query.AdjustToModel(schemaDef, false));
+            cursor.QueryLimit(query);
 
             A.CallTo(() => cursor.Limit(3))
                 .MustHaveHappened();
@@ -244,7 +288,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.MongoDb
             var query = new ClrQuery { Skip = 3 };
             var cursor = A.Fake<IFindFluent<MongoContentEntity, MongoContentEntity>>();
 
-            cursor.ContentSkip(query.AdjustToModel(schemaDef, false));
+            cursor.QuerySkip(query);
 
             A.CallTo(() => cursor.Skip(3))
                 .MustHaveHappened();
@@ -272,7 +316,7 @@ namespace Squidex.Domain.Apps.Entities.Contents.MongoDb
                     i = sortDefinition.Render(Serializer, Registry).ToString();
                 });
 
-            cursor.ContentSort(new ClrQuery { Sort = sorts.ToList() }.AdjustToModel(schemaDef, false));
+            cursor.QuerySort(new ClrQuery { Sort = sorts.ToList() }.AdjustToModel(schemaDef, false));
 
             return i;
         }

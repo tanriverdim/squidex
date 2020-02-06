@@ -1,6 +1,3 @@
-@import '_vars';
-@import '_mixins';
-
 .dashboard {
     & {
         @include absolute(0, 0, 0, 0);
@@ -76,7 +73,7 @@
         }
 
         &:hover {
-            @include box-shadow(0, 3px, 16px, .2px);
+            @include box-shadow-outer(0, 3px, 16px, .2px);
         }
 
         &:focus {

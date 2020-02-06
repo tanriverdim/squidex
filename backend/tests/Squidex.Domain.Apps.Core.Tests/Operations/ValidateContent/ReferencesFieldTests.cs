@@ -112,7 +112,7 @@ namespace Squidex.Domain.Apps.Core.Operations.ValidateContent
             await sut.ValidateAsync(JsonValue.Create("invalid"), errors, Context());
 
             errors.Should().BeEquivalentTo(
-                new[] { "Not a valid value." });
+                new[] { "Invalid json type, expected array of guid strings." });
         }
 
         [Fact]
@@ -146,6 +146,16 @@ namespace Squidex.Domain.Apps.Core.Operations.ValidateContent
 
             errors.Should().BeEquivalentTo(
                 new[] { $"Contains invalid reference '{ref1}'." });
+        }
+
+        [Fact]
+        public async Task Should_not_add_error_if_reference_are_not_valid_but_in_optimized_mode()
+        {
+            var sut = Field(new ReferencesFieldProperties { SchemaId = schemaId });
+
+            await sut.ValidateAsync(CreateValue(ref1), errors, ValidationTestExtensions.References().Optimized());
+
+            Assert.Empty(errors);
         }
 
         [Fact]

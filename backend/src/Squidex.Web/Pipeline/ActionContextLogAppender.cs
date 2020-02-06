@@ -6,8 +6,10 @@
 // ==========================================================================
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Squidex.Infrastructure;
 using Squidex.Infrastructure.Log;
 
 namespace Squidex.Web.Pipeline
@@ -19,7 +21,11 @@ namespace Squidex.Web.Pipeline
 
         public ActionContextLogAppender(IActionContextAccessor actionContextAccessor, IHttpContextAccessor httpContextAccessor)
         {
+            Guard.NotNull(actionContextAccessor);
+            Guard.NotNull(httpContextAccessor);
+
             this.actionContextAccessor = actionContextAccessor;
+
             this.httpContextAccessor = httpContextAccessor;
         }
 
@@ -32,22 +38,13 @@ namespace Squidex.Web.Pipeline
                 return;
             }
 
-            Guid requestId;
-
-            if (httpContext.Items.TryGetValue(nameof(requestId), out var requestIdvalue) && requestIdvalue is Guid requestIdValue)
-            {
-                requestId = requestIdValue;
-            }
-            else
-            {
-                httpContext.Items[nameof(requestId)] = requestId = Guid.NewGuid();
-            }
+            var requestId = GetRequestId(httpContext);
 
             var logContext = (requestId, context: httpContext, actionContextAccessor);
 
             writer.WriteObject("web", logContext, (ctx, w) =>
             {
-                w.WriteProperty("requestId", ctx.requestId.ToString());
+                w.WriteProperty("requestId", ctx.requestId);
                 w.WriteProperty("requestPath", ctx.context.Request.Path);
                 w.WriteProperty("requestMethod", ctx.context.Request.Method);
 
@@ -64,6 +61,11 @@ namespace Squidex.Web.Pipeline
                     });
                 }
             });
+        }
+
+        private static string GetRequestId(HttpContext httpContext)
+        {
+            return Activity.Current?.Id ?? httpContext.TraceIdentifier ?? Guid.NewGuid().ToString();
         }
     }
 }

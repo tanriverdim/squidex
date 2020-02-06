@@ -12,6 +12,7 @@ using FakeItEasy;
 using Squidex.Domain.Apps.Core.Tags;
 using Squidex.Domain.Apps.Entities.TestHelpers;
 using Squidex.Infrastructure;
+using Squidex.Infrastructure.Caching;
 using Xunit;
 
 namespace Squidex.Domain.Apps.Entities.Assets.Queries
@@ -19,6 +20,7 @@ namespace Squidex.Domain.Apps.Entities.Assets.Queries
     public class AssetEnricherTests
     {
         private readonly ITagService tagService = A.Fake<ITagService>();
+        private readonly IRequestCache requestCache = A.Fake<IRequestCache>();
         private readonly IAssetMetadataSource assetMetadataSource1 = A.Fake<IAssetMetadataSource>();
         private readonly IAssetMetadataSource assetMetadataSource2 = A.Fake<IAssetMetadataSource>();
         private readonly NamedId<Guid> appId = NamedId.Of(Guid.NewGuid(), "my-app");
@@ -33,7 +35,7 @@ namespace Squidex.Domain.Apps.Entities.Assets.Queries
                 assetMetadataSource2
             };
 
-            sut = new AssetEnricher(tagService, assetMetadataSources);
+            sut = new AssetEnricher(tagService, assetMetadataSources, requestCache);
         }
 
         [Fact]
@@ -44,6 +46,17 @@ namespace Squidex.Domain.Apps.Entities.Assets.Queries
             var result = await sut.EnrichAsync(source, requestContext);
 
             Assert.Empty(result.TagNames);
+        }
+
+        [Fact]
+        public async Task Should_enrich_with_cache_dependencies()
+        {
+            var source = new AssetEntity { AppId = appId, Id = Guid.NewGuid(), Version = 13 };
+
+            var result = await sut.EnrichAsync(source, requestContext);
+
+            A.CallTo(() => requestCache.AddDependency(result.Id, result.Version))
+                .MustHaveHappened();
         }
 
         [Fact]
@@ -59,7 +72,7 @@ namespace Squidex.Domain.Apps.Entities.Assets.Queries
                 AppId = appId
             };
 
-            A.CallTo(() => tagService.DenormalizeTagsAsync(appId.Id, TagGroups.Assets, A<HashSet<string>>.That.Has("id1", "id2")))
+            A.CallTo(() => tagService.DenormalizeTagsAsync(appId.Id, TagGroups.Assets, A<HashSet<string>>.That.Is("id1", "id2")))
                 .Returns(new Dictionary<string, string>
                 {
                     ["id1"] = "name1",
@@ -84,7 +97,7 @@ namespace Squidex.Domain.Apps.Entities.Assets.Queries
                 AppId = appId
             };
 
-            var result = await sut.EnrichAsync(source, requestContext.Clone().WithNoAssetEnrichment());
+            var result = await sut.EnrichAsync(source, requestContext.Clone().WithoutAssetEnrichment());
 
             Assert.Null(result.TagNames);
         }
@@ -137,7 +150,7 @@ namespace Squidex.Domain.Apps.Entities.Assets.Queries
                 AppId = appId
             };
 
-            A.CallTo(() => tagService.DenormalizeTagsAsync(appId.Id, TagGroups.Assets, A<HashSet<string>>.That.Has("id1", "id2", "id3")))
+            A.CallTo(() => tagService.DenormalizeTagsAsync(appId.Id, TagGroups.Assets, A<HashSet<string>>.That.Is("id1", "id2", "id3")))
                 .Returns(new Dictionary<string, string>
                 {
                     ["id1"] = "name1",

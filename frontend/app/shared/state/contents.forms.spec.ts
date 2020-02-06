@@ -63,37 +63,37 @@ describe('SchemaDetailsDto', () => {
     it('should return configured fields as list fields if fields are declared', () => {
         const schema = createSchema({ properties: new SchemaPropertiesDto(''), fields: [field1, field2, field3], fieldsInLists: ['field1', 'field3'] });
 
-        expect(schema.listFields).toEqual([field1, field3]);
+        expect(schema.defaultListFields).toEqual([field1, field3]);
     });
 
     it('should return first fields as list fields if no field is declared', () => {
         const schema = createSchema({ properties: new SchemaPropertiesDto(''), fields: [field1, field2, field3] });
 
-        expect(schema.listFields).toEqual([MetaFields.lastModifiedByAvatar, field1, MetaFields.statusColor, MetaFields.lastModified]);
+        expect(schema.defaultListFields).toEqual([MetaFields.lastModifiedByAvatar, field1, MetaFields.statusColor, MetaFields.lastModified]);
     });
 
     it('should return preset with empty content field as list fields if fields is empty', () => {
         const schema = createSchema({ properties: new SchemaPropertiesDto() });
 
-        expect(schema.listFields).toEqual([MetaFields.lastModifiedByAvatar, '', MetaFields.statusColor, MetaFields.lastModified]);
+        expect(schema.defaultListFields).toEqual([MetaFields.lastModifiedByAvatar, '', MetaFields.statusColor, MetaFields.lastModified]);
     });
 
     it('should return configured fields as references fields if fields are declared', () => {
         const schema = createSchema({ properties: new SchemaPropertiesDto(''), fields: [field1, field2, field3], fieldsInReferences: ['field1', 'field3'] });
 
-        expect(schema.referenceFields).toEqual([field1, field3]);
+        expect(schema.defaultReferenceFields).toEqual([field1, field3]);
     });
 
     it('should return first field as reference fields if no field is declared', () => {
         const schema = createSchema({ properties: new SchemaPropertiesDto(''), fields: [field1, field2, field3] });
 
-        expect(schema.referenceFields).toEqual([field1]);
+        expect(schema.defaultReferenceFields).toEqual([field1]);
     });
 
     it('should return noop field as reference field if list is empty', () => {
         const schema = createSchema({ properties: new SchemaPropertiesDto() });
 
-        expect(schema.referenceFields).toEqual(['']);
+        expect(schema.defaultReferenceFields).toEqual(['']);
     });
 });
 
@@ -415,6 +415,24 @@ describe('StringField', () => {
 
     it('should format to string', () => {
         expect(FieldFormatter.format(field, 'hello')).toBe('hello');
+    });
+
+    it('should format to preview image', () => {
+        const field2 = createField({ properties: createProperties('String', { editor: 'StockPhoto' }) });
+
+        expect(FieldFormatter.format(field2, 'https://images.unsplash.com/123?x', true)).toEqual(new HtmlValue('<img src="https://images.unsplash.com/123?x&q=80&fm=jpg&crop=entropy&cs=tinysrgb&h=50&fit=max" />'));
+    });
+
+    it('should not format to preview image when html not allowed', () => {
+        const field2 = createField({ properties: createProperties('String', { editor: 'StockPhoto' }) });
+
+        expect(FieldFormatter.format(field2, 'https://images.unsplash.com/123?x', false)).toBe('https://images.unsplash.com/123?x');
+    });
+
+    it('should not format to preview image when not unsplash image', () => {
+        const field2 = createField({ properties: createProperties('String', { editor: 'StockPhoto' }) });
+
+        expect(FieldFormatter.format(field2, 'https://images.com/123?x', true)).toBe('https://images.com/123?x');
     });
 
     it('should return default value for default properties', () => {

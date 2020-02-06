@@ -163,7 +163,7 @@ namespace Squidex.Domain.Apps.Core.Operations.ValidateContent
             await sut.ValidateAsync(JsonValue.Create("invalid"), errors);
 
             errors.Should().BeEquivalentTo(
-                new[] { "Not a valid value." });
+                new[] { "Invalid json type, expected array of guid strings." });
         }
 
         [Fact]
@@ -199,6 +199,18 @@ namespace Squidex.Domain.Apps.Core.Operations.ValidateContent
 
             errors.Should().BeEquivalentTo(
                 new[] { $"[1]: Id '{assetId}' not found." });
+        }
+
+        [Fact]
+        public async Task Should_not_add_error_if_asset_are_not_valid_but_in_optimized_mode()
+        {
+            var assetId = Guid.NewGuid();
+
+            var sut = Field(new AssetsFieldProperties());
+
+            await sut.ValidateAsync(CreateValue(assetId), errors, ctx.Optimized());
+
+            Assert.Empty(errors);
         }
 
         [Fact]

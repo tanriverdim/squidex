@@ -28,6 +28,12 @@ namespace Squidex.Config.Domain
             services.Configure<AssetOptions>(
                 config.GetSection("assets"));
 
+            services.AddTransientAs<AssetDomainObject>()
+                .AsSelf();
+
+            services.AddTransientAs<AssetFolderDomainObject>()
+                .AsSelf();
+
             services.AddSingletonAs<AssetQueryParser>()
                 .AsSelf();
 
@@ -46,10 +52,13 @@ namespace Squidex.Config.Domain
             services.AddSingletonAs<AssetUsageTracker>()
                 .As<IAssetUsageTracker>().As<IEventConsumer>();
 
-            services.AddSingletonAs<FileTypeTagGenerator>()
+            services.AddSingletonAs<FileTypeAssetMetadataSource>()
                 .As<IAssetMetadataSource>();
 
             services.AddSingletonAs<FileTagAssetMetadataSource>()
+                .As<IAssetMetadataSource>();
+
+            services.AddSingletonAs<ImageAssetMetadataSource>()
                 .As<IAssetMetadataSource>();
         }
 

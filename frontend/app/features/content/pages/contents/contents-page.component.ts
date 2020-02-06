@@ -6,12 +6,14 @@
  */
 
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { onErrorResumeNext, switchMap, tap } from 'rxjs/operators';
 
 import {
     AppLanguageDto,
     ContentDto,
     ContentsState,
+    fadeAnimation,
     LanguagesState,
     ModalModel,
     Queries,
@@ -21,6 +23,8 @@ import {
     ResourceOwner,
     SchemaDetailsDto,
     SchemasState,
+    TableFields,
+    TempService,
     UIState
 } from '@app/shared';
 
@@ -29,10 +33,16 @@ import { DueTimeSelectorComponent } from './../../shared/due-time-selector.compo
 @Component({
     selector: 'sqx-contents-page',
     styleUrls: ['./contents-page.component.scss'],
-    templateUrl: './contents-page.component.html'
+    templateUrl: './contents-page.component.html',
+    animations: [
+        fadeAnimation
+    ]
 })
 export class ContentsPageComponent extends ResourceOwner implements OnInit {
     public schema: SchemaDetailsDto;
+
+    public tableView: TableFields;
+    public tableViewModal = new ModalModel();
 
     public searchModal = new ModalModel();
 
@@ -55,8 +65,11 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
 
     constructor(
         public readonly contentsState: ContentsState,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
         private readonly languagesState: LanguagesState,
         private readonly schemasState: SchemasState,
+        private readonly tempService: TempService,
         private readonly uiState: UIState
     ) {
         super();
@@ -74,6 +87,7 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
 
                     this.updateQueries();
                     this.updateModel();
+                    this.updateTable();
                 }));
 
         this.own(
@@ -92,8 +106,8 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
             this.languagesState.languages
                 .subscribe(languages => {
                     this.languages = languages.map(x => x.language);
-                    this.language = this.languages[0];
-                    this.languageMaster = this.languages.find(x => x.isMaster)!;
+                    this.language = this.languages.find(x => x.isMaster)!;
+                    this.languageMaster = this.language;
 
                     this.updateModel();
                 }));
@@ -119,10 +133,6 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
         this.changeContentItems(this.selectItems(c => c.status !== status), status);
     }
 
-    public clone(content: ContentDto) {
-        this.contentsState.create(content.dataDraft, false);
-    }
-
     private changeContentItems(contents: ReadonlyArray<ContentDto>, action: string) {
         if (contents.length === 0) {
             return;
@@ -137,12 +147,14 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
             .subscribe();
     }
 
-    public search(query: Query) {
-        this.contentsState.search(query);
+    public clone(content: ContentDto) {
+        this.tempService.put(content.dataDraft);
+
+        this.router.navigate(['new'], { relativeTo: this.route });
     }
 
-    public selectLanguage(language: AppLanguageDto) {
-        this.language = language;
+    public search(query: Query) {
+        this.contentsState.search(query);
     }
 
     public isItemSelected(content: ContentDto): boolean {
@@ -151,6 +163,10 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
 
     private selectItems(predicate?: (content: ContentDto) => boolean) {
         return this.contentsState.snapshot.contents.filter(c => this.selectedItems[c.id] && (!predicate || predicate(c)));
+    }
+
+    public selectLanguage(language: AppLanguageDto) {
+        this.language = language;
     }
 
     public selectItem(content: ContentDto, isSelected: boolean) {
@@ -215,6 +231,12 @@ export class ContentsPageComponent extends ResourceOwner implements OnInit {
     private updateQueries() {
         if (this.schema) {
             this.queries = new Queries(this.uiState, `schemas.${this.schema.name}`);
+        }
+    }
+
+    private updateTable() {
+        if (this.schema) {
+            this.tableView = new TableFields(this.uiState, this.schema);
         }
     }
 

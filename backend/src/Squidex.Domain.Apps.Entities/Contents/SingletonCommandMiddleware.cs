@@ -5,7 +5,6 @@
 //  All rights reserved. Licensed under the MIT license.
 // ==========================================================================
 
-using System;
 using System.Threading.Tasks;
 using Squidex.Domain.Apps.Core.Contents;
 using Squidex.Domain.Apps.Entities.Contents.Commands;
@@ -18,9 +17,9 @@ namespace Squidex.Domain.Apps.Entities.Contents
 {
     public sealed class SingletonCommandMiddleware : ICommandMiddleware
     {
-        public async Task HandleAsync(CommandContext context, Func<Task> next)
+        public async Task HandleAsync(CommandContext context, NextDelegate next)
         {
-            await next();
+            await next(context);
 
             if (context.IsCompleted &&
                 context.Command is CreateSchema createSchema &&
@@ -31,11 +30,17 @@ namespace Squidex.Domain.Apps.Entities.Contents
                 var data = new NamedContentData();
 
                 var contentId = schemaId.Id;
-                var content = new CreateContent { Data = data, ContentId = contentId, SchemaId = schemaId, DoNotValidate = true };
+                var content = new CreateContent
+                {
+                    Data = data,
+                    ContentId = contentId,
+                    DoNotScript = true,
+                    DoNotValidate = true,
+                    Publish = true,
+                    SchemaId = schemaId
+                };
 
                 SimpleMapper.Map(createSchema, content);
-
-                content.Publish = true;
 
                 await context.CommandBus.PublishAsync(content);
             }

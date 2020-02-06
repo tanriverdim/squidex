@@ -17,7 +17,7 @@ using Squidex.Infrastructure.MongoDb;
 
 namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
 {
-    public sealed class MongoAssetEntity : IAssetEntity
+    public sealed class MongoAssetEntity : IAssetEntity, IVersionedEntity<Guid>
     {
         [BsonId]
         [BsonElement("_id")]
@@ -88,6 +88,10 @@ namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
         [BsonIgnoreIfNull]
         [BsonElement("td")]
         public HashSet<string> Tags { get; set; }
+
+        [BsonIgnoreIfDefault]
+        [BsonElement("pt")]
+        public bool IsProtected { get; set; }
 
         [BsonRequired]
         [BsonElement("dl")]

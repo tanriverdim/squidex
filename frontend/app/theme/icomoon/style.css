@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?bmb569');
-  src:  url('fonts/icomoon.eot?bmb569#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?bmb569') format('truetype'),
-    url('fonts/icomoon.woff?bmb569') format('woff'),
-    url('fonts/icomoon.svg?bmb569#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?ipz2o6');
+  src:  url('fonts/icomoon.eot?ipz2o6#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?ipz2o6') format('truetype'),
+    url('fonts/icomoon.woff?ipz2o6') format('woff'),
+    url('fonts/icomoon.svg?ipz2o6#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,21 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-zoom_out:before {
+  content: "\e982";
+}
+.icon-zoom_in:before {
+  content: "\e983";
+}
+.icon-flip:before {
+  content: "\e97f";
+}
+.icon-rotate_right:before {
+  content: "\e980";
+}
+.icon-rotate_left:before {
+  content: "\e981";
+}
 .icon-create_new_folder:before {
   content: "\e97b";
 }
@@ -81,6 +96,12 @@
 }
 .icon-download:before {
   content: "\e93e";
+}
+.icon-angle-double-right:before {
+  content: "\e97d";
+}
+.icon-angle-double-left:before {
+  content: "\e97e";
 }
 .icon-filter-filled:before {
   content: "\e978";

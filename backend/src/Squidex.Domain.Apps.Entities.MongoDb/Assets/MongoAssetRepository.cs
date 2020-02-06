@@ -17,6 +17,7 @@ using Squidex.Domain.Apps.Entities.MongoDb.Assets.Visitors;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.Log;
 using Squidex.Infrastructure.MongoDb;
+using Squidex.Infrastructure.MongoDb.Queries;
 using Squidex.Infrastructure.Queries;
 
 namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
@@ -26,6 +27,11 @@ namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
         public MongoAssetRepository(IMongoDatabase database)
             : base(database)
         {
+        }
+
+        public IMongoCollection<MongoAssetEntity> GetInternalCollection()
+        {
+            return Collection;
         }
 
         protected override string CollectionName()
@@ -48,7 +54,12 @@ namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
                     Index
                         .Ascending(x => x.IndexedAppId)
                         .Ascending(x => x.IsDeleted)
-                        .Ascending(x => x.Slug))
+                        .Ascending(x => x.Slug)),
+                new CreateIndexModel<MongoAssetEntity>(
+                    Index
+                        .Ascending(x => x.IndexedAppId)
+                        .Ascending(x => x.IsDeleted)
+                        .Ascending(x => x.FileHash))
             }, ct);
         }
 
@@ -65,9 +76,9 @@ namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
                     var assetCount = Collection.Find(filter).CountDocumentsAsync();
                     var assetItems =
                         Collection.Find(filter)
-                            .AssetTake(query)
-                            .AssetSkip(query)
-                            .AssetSort(query)
+                            .QueryLimit(query)
+                            .QuerySkip(query)
+                            .QuerySort(query)
                             .ToListAsync();
 
                     await Task.WhenAll(assetItems, assetCount);
@@ -88,15 +99,27 @@ namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
             }
         }
 
+        public async Task<IReadOnlyList<Guid>> QueryIdsAsync(Guid appId, HashSet<Guid> ids)
+        {
+            using (Profiler.TraceMethod<MongoAssetRepository>("QueryAsyncByIds"))
+            {
+                var assetEntities =
+                    await Collection.Find(BuildFilter(appId, ids)).Only(x => x.Id)
+                        .ToListAsync();
+
+                return assetEntities.Select(x => Guid.Parse(x["_id"].AsString)).ToList();
+            }
+        }
+
         public async Task<IResultList<IAssetEntity>> QueryAsync(Guid appId, HashSet<Guid> ids)
         {
             using (Profiler.TraceMethod<MongoAssetRepository>("QueryAsyncByIds"))
             {
-                var find = Collection.Find(x => ids.Contains(x.Id)).SortByDescending(x => x.LastModified);
+                var assetEntities =
+                    await Collection.Find(BuildFilter(appId, ids)).SortByDescending(x => x.LastModified)
+                        .ToListAsync();
 
-                var assetItems = await find.ToListAsync();
-
-                return ResultList.Create(assetItems.Count, assetItems.OfType<IAssetEntity>());
+                return ResultList.Create(assetEntities.Count, assetEntities.OfType<IAssetEntity>());
             }
         }
 
@@ -134,6 +157,14 @@ namespace Squidex.Domain.Apps.Entities.MongoDb.Assets
 
                 return assetEntity;
             }
+        }
+
+        private static FilterDefinition<MongoAssetEntity> BuildFilter(Guid appId, HashSet<Guid> ids)
+        {
+            return Filter.And(
+                Filter.Eq(x => x.IndexedAppId, appId),
+                Filter.In(x => x.Id, ids),
+                Filter.Ne(x => x.IsDeleted, true));
         }
     }
 }

@@ -130,6 +130,15 @@
     display: inline-block;
 }
 
+@mixin circle-icon($size) {
+    @include circle($size);
+    cursor: none;
+    font-size: .5 * $size;
+    font-weight: normal;
+    line-height: $size + .1rem;
+    text-align: center;
+}
+
 @mixin placeholder-color($color) {
     ::placeholder {
         color: $color;
@@ -166,7 +175,7 @@
     }
 }
 
-@mixin box-shadow($x-axis: 0, $y-axis: 1px, $blur: 2px, $alpha: .1) {
+@mixin box-shadow-outer($x-axis: 0, $y-axis: 1px, $blur: 2px, $alpha: .1) {
     box-shadow: $x-axis $y-axis $blur rgba(0, 0, 0, $alpha);
 }
 

@@ -12,7 +12,7 @@ using FakeItEasy;
 using NodaTime;
 using Squidex.Domain.Apps.Core.Contents;
 using Squidex.Domain.Apps.Core.HandleRules;
-using Squidex.Domain.Apps.Core.HandleRules.EnrichedEvents;
+using Squidex.Domain.Apps.Core.Rules.EnrichedEvents;
 using Squidex.Domain.Apps.Core.Scripting;
 using Squidex.Infrastructure;
 using Squidex.Infrastructure.Json.Objects;
@@ -111,6 +111,18 @@ namespace Squidex.Domain.Apps.Core.Operations.HandleRules
             var result = sut.Format(script, @event);
 
             Assert.Equal($"Date: {now:yyyy-MM-dd}, Full: {now:yyyy-MM-dd-hh-mm-ss}", result);
+        }
+
+        [Theory]
+        [InlineData("From $MENTIONED_NAME ($MENTIONED_EMAIL, $MENTIONED_ID)")]
+        [InlineData("Script(`From ${event.mentionedUser.name} (${event.mentionedUser.email}, ${event.mentionedUser.id})`)")]
+        public void Should_format_email_and_display_name_from_mentioned_user(string script)
+        {
+            var @event = new EnrichedCommentEvent { MentionedUser = user };
+
+            var result = sut.Format(script, @event);
+
+            Assert.Equal("From me (me@email.com, 123)", result);
         }
 
         [Theory]
@@ -270,7 +282,7 @@ namespace Squidex.Domain.Apps.Core.Operations.HandleRules
                     new NamedContentData()
                         .AddField("city",
                             new ContentFieldData()
-                                .AddValue("iv", JsonValue.Array()))
+                                .AddJsonValue(JsonValue.Array()))
             };
 
             var result = sut.Format(script, @event);
@@ -289,7 +301,7 @@ namespace Squidex.Domain.Apps.Core.Operations.HandleRules
                     new NamedContentData()
                         .AddField("city",
                             new ContentFieldData()
-                                .AddValue("iv", JsonValue.Object().Add("name", "Berlin")))
+                                .AddJsonValue(JsonValue.Object().Add("name", "Berlin")))
             };
 
             var result = sut.Format(script, @event);
@@ -327,8 +339,7 @@ namespace Squidex.Domain.Apps.Core.Operations.HandleRules
                     new NamedContentData()
                         .AddField("city",
                             new ContentFieldData()
-                                .AddValue("iv", JsonValue.Array(
-                                    "Berlin")))
+                                .AddJsonValue(JsonValue.Array("Berlin")))
             };
 
             var result = sut.Format(script, @event);
@@ -347,7 +358,7 @@ namespace Squidex.Domain.Apps.Core.Operations.HandleRules
                     new NamedContentData()
                         .AddField("city",
                             new ContentFieldData()
-                                .AddValue("iv", JsonValue.Object().Add("name", "Berlin")))
+                                .AddJsonValue(JsonValue.Object().Add("name", "Berlin")))
             };
 
             var result = sut.Format(script, @event);
@@ -366,7 +377,7 @@ namespace Squidex.Domain.Apps.Core.Operations.HandleRules
                     new NamedContentData()
                         .AddField("city",
                             new ContentFieldData()
-                                .AddValue("iv", JsonValue.Object().Add("name", "Berlin")))
+                                .AddJsonValue(JsonValue.Object().Add("name", "Berlin")))
             };
 
             var result = sut.Format(script, @event);

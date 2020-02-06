@@ -64,12 +64,12 @@ namespace Squidex.Domain.Apps.Core.Schemas
             return properties.SchemaIds?.Count == 1 ? properties.SchemaIds[0] : Guid.Empty;
         }
 
-        public static IEnumerable<RootField> ReferencesFields(this Schema schema)
+        public static IEnumerable<RootField> ReferenceFields(this Schema schema)
         {
             return schema.RootFields(schema.FieldsInReferences);
         }
 
-        public static IEnumerable<RootField> ListsFields(this Schema schema)
+        public static IEnumerable<RootField> ListFields(this Schema schema)
         {
             return schema.RootFields(schema.FieldsInLists);
         }
@@ -102,23 +102,13 @@ namespace Squidex.Domain.Apps.Core.Schemas
         public static IEnumerable<IField<ReferencesFieldProperties>> ResolvingReferences(this Schema schema)
         {
             return schema.Fields.OfType<IField<ReferencesFieldProperties>>()
-                .Where(x =>
-                    x.Properties.ResolveReference &&
-                    x.Properties.MaxItems == 1 &&
-                    x.IsListField(schema));
+                .Where(x => x.Properties.ResolveReference && x.Properties.MaxItems == 1);
         }
 
         public static IEnumerable<IField<AssetsFieldProperties>> ResolvingAssets(this Schema schema)
         {
             return schema.Fields.OfType<IField<AssetsFieldProperties>>()
-                .Where(x =>
-                    x.Properties.ResolveImage &&
-                    x.IsListField(schema));
-        }
-
-        private static bool IsListField(this IField field, Schema schema)
-        {
-            return schema.FieldsInLists.Contains(field.Name) || schema.Fields.Count == 1 || (schema.FieldsInLists.Count == 0 && field == schema.Fields.FirstOrDefault());
+                .Where(x => x.Properties.ResolveImage);
         }
     }
 }

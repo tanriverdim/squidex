@@ -18,8 +18,10 @@ import {
 } from '@app/shared/internal';
 
 interface State {
+    // The filtered schemas.
     filtered: ReadonlyArray<SchemaDto>;
 
+    // True when the category is open.
     isOpen?: boolean;
 }
 
@@ -96,10 +98,6 @@ export class SchemaCategoryComponent extends StatefulComponent<State> implements
         if (drag.previousContainer !== drag.container) {
             this.schemasState.changeCategory(drag.item.data, this.schemaCategory.name);
         }
-    }
-
-    public emitRemove() {
-        this.remove.emit();
     }
 
     public trackBySchema(index: number, schema: SchemaDto) {

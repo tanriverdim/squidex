@@ -32,21 +32,22 @@ import {
     ContentListHeaderComponent,
     ContentListWidthPipe,
     ContentPageComponent,
-    ContentReferencesWidthPipe,
+    ContentSelectorComponent,
     ContentSelectorItemComponent,
     ContentsFiltersPageComponent,
     ContentsPageComponent,
-    ContentsSelectorComponent,
     ContentStatusComponent,
     ContentValueComponent,
     ContentValueEditorComponent,
+    CustomViewEditorComponent,
     DueTimeSelectorComponent,
     FieldEditorComponent,
     FieldLanguagesComponent,
     PreviewButtonComponent,
     ReferenceItemComponent,
     ReferencesEditorComponent,
-    SchemasPageComponent
+    SchemasPageComponent,
+    StockPhotoEditorComponent
 } from './declarations';
 
 const routes: Routes = [
@@ -106,9 +107,9 @@ const routes: Routes = [
 
 @NgModule({
     imports: [
+        RouterModule.forChild(routes),
         SqxFrameworkModule,
-        SqxSharedModule,
-        RouterModule.forChild(routes)
+        SqxSharedModule
     ],
     declarations: [
         ArrayEditorComponent,
@@ -117,27 +118,28 @@ const routes: Routes = [
         CommentsPageComponent,
         ContentComponent,
         ContentFieldComponent,
+        ContentHistoryPageComponent,
         ContentListCellDirective,
-        ContentReferencesWidthPipe,
-        ContentListWidthPipe,
         ContentListFieldComponent,
         ContentListHeaderComponent,
-        ContentHistoryPageComponent,
+        ContentListWidthPipe,
         ContentPageComponent,
+        ContentSelectorComponent,
         ContentSelectorItemComponent,
         ContentsFiltersPageComponent,
         ContentsPageComponent,
-        ContentsSelectorComponent,
         ContentStatusComponent,
         ContentValueComponent,
         ContentValueEditorComponent,
+        CustomViewEditorComponent,
         DueTimeSelectorComponent,
         FieldEditorComponent,
         FieldLanguagesComponent,
         PreviewButtonComponent,
         ReferenceItemComponent,
         ReferencesEditorComponent,
-        SchemasPageComponent
+        SchemasPageComponent,
+        StockPhotoEditorComponent
     ]
 })
 export class SqxFeatureContentModule {}

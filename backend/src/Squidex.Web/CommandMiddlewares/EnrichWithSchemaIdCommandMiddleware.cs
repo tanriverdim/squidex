@@ -23,16 +23,19 @@ namespace Squidex.Web.CommandMiddlewares
 
         public EnrichWithSchemaIdCommandMiddleware(IAppProvider appProvider, IActionContextAccessor actionContextAccessor)
         {
+            Guard.NotNull(appProvider);
+            Guard.NotNull(actionContextAccessor);
+
             this.appProvider = appProvider;
 
             this.actionContextAccessor = actionContextAccessor;
         }
 
-        public async Task HandleAsync(CommandContext context, Func<Task> next)
+        public async Task HandleAsync(CommandContext context, NextDelegate next)
         {
             if (actionContextAccessor.ActionContext == null)
             {
-                await next();
+                await next(context);
 
                 return;
             }
@@ -51,7 +54,7 @@ namespace Squidex.Web.CommandMiddlewares
                 schemaSelfCommand.SchemaId = schemaId?.Id ?? Guid.Empty;
             }
 
-            await next();
+            await next(context);
         }
 
         private async Task<NamedId<Guid>?> GetSchemaIdAsync(CommandContext context)

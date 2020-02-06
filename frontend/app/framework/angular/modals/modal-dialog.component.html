@@ -1,20 +1,18 @@
 <div class="modal" @fade>
-    <div class="modal-dialog" [class.modal-lg]="large" [class.modal-fh]="fullHeight">
+    <div class="modal-dialog modal-{{size}}" [class.modal-fh]="fullHeight">
         <div class="modal-content">
             <div class="modal-header" *ngIf="showHeader">
                 <h4 class="modal-title">
                     <ng-content select="[title]"></ng-content>
                 </h4>
 
-                <button type="button" class="close" (click)="emitClose()">
+                <ng-content select="[plainTitle]"></ng-content>
+
+                <button type="button" class="btn btn-close" (click)="close.emit()">
                     <i class="icon-close"></i>
                 </button>
             </div>
-
-            <div class="modal-tabs clearfix" #tabsElement *ngIf="showTabs">
-                <ng-content select="[tabs]"></ng-content>
-            </div>
-
+            
             <div class="modal-body" [class.flexed]="flexBody">
                 <ng-content select="[content]"></ng-content>
             </div>
@@ -28,4 +26,4 @@
     </div>
 </div>
 
-<sqx-shortcut keys="escape" (trigger)="emitClose()"></sqx-shortcut>
+<sqx-shortcut keys="escape" (trigger)="close.emit()"></sqx-shortcut>

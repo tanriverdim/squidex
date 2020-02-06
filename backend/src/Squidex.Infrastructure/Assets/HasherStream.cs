@@ -46,6 +46,11 @@ namespace Squidex.Infrastructure.Assets
         {
             Guard.NotNull(inner);
 
+            if (!inner.CanRead)
+            {
+                throw new ArgumentException("Inner stream must be readable.");
+            }
+
             this.inner = inner;
 
             hasher = IncrementalHash.CreateHash(hashAlgorithmName);

@@ -1,8 +1,5 @@
-@import '_vars';
-@import '_mixins';
-
 .navbar {
-    @include box-shadow(0, 3px, 5px, .13);
+    @include box-shadow-outer(0, 3px, 5px, .13);
     display: block;
 }
 

@@ -21,6 +21,7 @@ namespace Squidex.Infrastructure.MongoDb
     public static class MongoExtensions
     {
         private static readonly UpdateOptions Upsert = new UpdateOptions { IsUpsert = true };
+        private static readonly ReplaceOptions UpsertReplace = new ReplaceOptions { IsUpsert = true };
 
         public static async Task<bool> CollectionExistsAsync(this IMongoDatabase database, string collectionName)
         {
@@ -111,7 +112,14 @@ namespace Squidex.Infrastructure.MongoDb
             {
                 var update = updater(Builders<T>.Update.Set(x => x.Version, newVersion));
 
-                await collection.UpdateOneAsync(x => x.Id.Equals(key) && x.Version == oldVersion, update, Upsert);
+                if (oldVersion > EtagVersion.Any)
+                {
+                    await collection.UpdateOneAsync(x => x.Id.Equals(key) && x.Version == oldVersion, update, Upsert);
+                }
+                else
+                {
+                    await collection.UpdateOneAsync(x => x.Id.Equals(key), update, Upsert);
+                }
             }
             catch (MongoWriteException ex)
             {
@@ -137,7 +145,14 @@ namespace Squidex.Infrastructure.MongoDb
         {
             try
             {
-                await collection.ReplaceOneAsync(x => x.Id.Equals(key) && x.Version == oldVersion, doc, Upsert);
+                if (oldVersion > EtagVersion.Any)
+                {
+                    await collection.ReplaceOneAsync(x => x.Id.Equals(key) && x.Version == oldVersion, doc, UpsertReplace);
+                }
+                else
+                {
+                    await collection.ReplaceOneAsync(x => x.Id.Equals(key), doc, UpsertReplace);
+                }
             }
             catch (MongoWriteException ex)
             {

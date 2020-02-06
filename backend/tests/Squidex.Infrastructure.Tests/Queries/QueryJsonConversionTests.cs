@@ -30,7 +30,7 @@ namespace Squidex.Infrastructure.Queries
             ("le", "$FIELD <= $VALUE"),
             ("lt", "$FIELD < $VALUE"),
             ("ne", "$FIELD != $VALUE"),
-            ("startswith", "startsWith($FIELD, $VALUE)"),
+            ("startswith", "startsWith($FIELD, $VALUE)")
         };
 
         private readonly List<string> errors = new List<string>();
@@ -362,6 +362,14 @@ namespace Squidex.Infrastructure.Queries
         }
 
         [Fact]
+        public void Should_parse_query_with_top()
+        {
+            var json = new { skip = 10, top = 20, FullText = "Hello", Filter = new { path = "string", op = "eq", value = "Hello" } };
+
+            AssertQuery(json, "Filter: string == 'Hello'; FullText: 'Hello'; Skip: 10; Take: 20");
+        }
+
+        [Fact]
         public void Should_parse_query_with_sorting()
         {
             var json = new { sort = new[] { new { path = "string", order = "ascending" } } };
@@ -432,7 +440,7 @@ namespace Squidex.Infrastructure.Queries
 
         public static IEnumerable<object[]> BuildInTests(string field, object value, string valueString)
         {
-            var fields = new string[]
+            var fields = new[]
             {
                 $"{field}",
                 $"json.{field}",
@@ -443,7 +451,7 @@ namespace Squidex.Infrastructure.Queries
             {
                 var expected = $"{f} in [{valueString}]";
 
-                yield return new object[] { f, value, expected };
+                yield return new[] { f, value, expected };
             }
         }
 
@@ -465,7 +473,7 @@ namespace Squidex.Infrastructure.Queries
                             .Replace("$FIELD", f)
                             .Replace("$VALUE", valueString);
 
-                    yield return new object[] { f, op.Operator, value, expected };
+                    yield return new[] { f, op.Operator, value, expected };
                 }
             }
         }

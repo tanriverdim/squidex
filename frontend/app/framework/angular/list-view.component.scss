@@ -1,6 +1,3 @@
-@import '_mixins';
-@import '_vars';
-
 :host {
     display: flex;
     flex-direction: column;
@@ -23,6 +20,7 @@
     }
 
     &-content {
+        flex-direction: column;
         flex-grow: 1;
         padding: $panel-padding;
 
@@ -55,16 +53,18 @@
             display: table-cell;
         }
 
-        /deep/ th {
-            padding: .75rem;
-        }
+        ::ng-deep {
+            th {
+                padding: .75rem;
+            }
 
-        /deep/ table {
-            margin: 0;
-        }
+            table {
+                margin: 0;
+            }
 
-        /deep/ .table-items {
-            margin: 0;
+            .table-items {
+                margin: 0;
+            }
         }
     }
 
@@ -75,8 +75,10 @@
             flex-shrink: 0;
         }
 
-        /deep/ .pagination {
-            margin: .25rem 0;
+        ::ng-deep {
+            .pagination {
+                margin: .25rem 0;
+            }
         }
     }
 }
