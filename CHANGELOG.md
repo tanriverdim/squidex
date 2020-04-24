@@ -1,6 +1,45 @@
 # Changelog
 
-## 4.1..0 - 2020-02-11
+## 4.2.0 Beta 2 - 2020-02-24
+
+This release just contains a lot of bugfixes.
+
+## 4.2.0 Beta 1 - 2020-02-20
+
+The release makes a lot of changed to the content structure, therefore it will run a migration to recreate the contents collections. This can take a while.
+
+### Features
+
+* **UI**: Global search
+* **Contents**: Full text search also includes references items.
+* **Contents**: Alignment of workflows.
+* **Contents**: Improvements to full text index for later support of elastic search.
+
+## 4.1.3 - 2020-02-20
+
+### Bugfixes
+
+* **UI**: Several fixes due to wrong references of SCSS mixins.
+
+### Features
+
+* **Assets**: Option to turn on the recursive deleter.
+
+## 4.1.2 - 2020-02-19
+
+### Bugfixes
+
+* **UI**: Fix to show all controls for localized assets.
+* **UI**: Fix for sorting content when clicking on table headers.
+* **UI**: Fixed disable state in tag editor.
+* **UI**: Fixed layout issues with modal editor.
+
+### Features
+
+* **Clustering**: Configuration option to define the IP Address manually.
+* **UI**: Migration to Angular9 and Ivy.
+
+## 4.1.0 - 2020-02-11
 
 ### Bugfixes
 

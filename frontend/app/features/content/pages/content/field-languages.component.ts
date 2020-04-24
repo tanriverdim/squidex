@@ -6,7 +6,6 @@
  */
 
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-
 import { AppLanguageDto, RootFieldDto } from '@app/shared';
 
 @Component({
@@ -35,6 +34,6 @@ export class FieldLanguagesComponent {
     public field: RootFieldDto;
 
     public toggleShowAllControls() {
-        this.showAllControlsChange.emit(this.showAllControls);
+        this.showAllControlsChange.emit(!this.showAllControls);
     }
 }

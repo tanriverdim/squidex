@@ -5,19 +5,12 @@
  * Copyright (c) Squidex UG (haftungsbeschränkt). All rights reserved.
  */
 
-// tslint:disable:template-use-track-by-function
+// tslint:disable: template-use-track-by-function
 
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { FormControl, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { fadeAnimation, Keys, ModalModel, StatefulControlComponent, Types } from '@app/framework/internal';
 import { distinctUntilChanged, map, tap } from 'rxjs/operators';
-
-import {
-    fadeAnimation,
-    Keys,
-    ModalModel,
-    StatefulControlComponent,
-    Types
-} from '@app/framework/internal';
 
 export const CONVERSION_FAILED = {};
 
@@ -251,8 +244,13 @@ export class TagEditorComponent extends StatefulControlComponent<State, Readonly
                     tap(() => {
                         this.resetSize();
                     }),
-                    map(query => <string>query),
-                    map(query => query ? query.trim().toLowerCase() : query),
+                    map(query => {
+                        if (Types.isString(query)) {
+                            return query.trim().toLowerCase();
+                        } else {
+                            return '';
+                        }
+                    }),
                     tap(query => {
                         if (!query) {
                             this.resetAutocompletion();
@@ -260,7 +258,9 @@ export class TagEditorComponent extends StatefulControlComponent<State, Readonly
                     }),
                     distinctUntilChanged(),
                     map(query => {
-                        if (Types.isArray(this.suggestionsSorted) && query && query.length > 0) {
+                        if (!query) {
+                            return [];
+                        } else if (Types.isArray(this.suggestionsSorted)) {
                             return this.suggestionsSorted.filter(s => s.lowerCaseName.indexOf(query) >= 0 && !this.snapshot.items.find(x => x.id === s.id));
                         } else {
                             return [];
